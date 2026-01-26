@@ -1,54 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-    <div class="profile-header">
-    <h2 id="profileUser">User</h2>
-
-    <div class="follow-stats">
-        <div>
-            <strong id="followersCount">0</strong>
-            <p>Followers</p>
-        </div>
-        <div>
-            <strong id="followingCount">0</strong>
-            <p>Following</p>
-        </div>
-    </div>
-
-    <button id="followBtn" onclick="toggleFollow()">Follow</button>
-</div>
-
-
 <head>
     <title>VIBELOOP • Home</title>
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Bungee&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="fade-in">
 
+<!-- ROUND PROFILE BUTTON -->
+<div class="top-right">
+  <button class="profile-btn" onclick="goToProfile()">
+    <img id="profileIcon" src="default-man.png" alt="Profile">
+  </button>
+</div>
+
 <div class="container">
     <h1 class="logo small">VIBELOOP</h1>
-
     <p class="quote">Welcome, <span id="user"></span>! </p>
 
     <textarea placeholder="What's on your mind?"></textarea>
-   
 
-  
-
-<div class="camera-box"> 
-    <span id="cameraBtn" class="camera">📷 Add Image</span> 
-    <input type="file" id="imageInput" accept="image/*" hidden> 
-</div>
-
+    <div class="camera-box">
+        <span id="cameraBtn" class="camera">📷 Add Image</span>
+        <input type="file" id="imageInput" accept="image/*" hidden>
+    </div>
 
     <button onclick="addPost()">Post</button>
+    <button onclick="goToSaved()">⭐ View Saved Posts</button>
 
-<button onclick="goToSaved()">⭐ View Saved Posts</button>
-
-<div id="toast"></div>
+    <div id="toast"></div>
+</div>
 
 <script src="script.js"></script>
 </body>

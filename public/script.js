@@ -25,6 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
         userSpan.textContent = localStorage.getItem("user") || "User";
     }
 
+    // PROFILE ICON LOGIC
+    const profileIcon = document.getElementById("profileIcon");
+    const profileImage = localStorage.getItem("profileImage");
+    if (profileIcon) {
+        profileIcon.src = profileImage ? profileImage : "default-man.png";
+    }
+
     const cameraBtn = document.getElementById("cameraBtn");
     const imageInput = document.getElementById("imageInput");
 
@@ -33,8 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         imageInput.addEventListener("change", () => {
             if (imageInput.files && imageInput.files[0]) {
-
-                // Remove old preview
                 const oldPreview = document.getElementById("imagePreview");
                 if (oldPreview) oldPreview.remove();
 
@@ -50,19 +55,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.querySelector(".camera-box").appendChild(img);
             }
         });
-    }
-
-    // Followers load
-    const followersCount = document.getElementById("followersCount");
-    const followBtn = document.getElementById("followBtn");
-
-    if (followersCount && followBtn) {
-        followersCount.textContent = localStorage.getItem("followers") || 0;
-
-        if (localStorage.getItem("isFollowing") === "true") {
-            followBtn.textContent = "Following";
-            followBtn.classList.add("following");
-        }
     }
 });
 
@@ -120,7 +112,6 @@ function react(btn) {
     span.textContent = Number(span.textContent) + 1;
 }
 
-
 /* ================= COMMENTS ================= */
 function addComment(btn) {
     const input = btn.previousElementSibling;
@@ -129,8 +120,6 @@ function addComment(btn) {
     if (!commentText) return;
 
     const commentsDiv = btn.nextElementSibling;
-
-    // Get logged-in username
     const username = localStorage.getItem("user") || "User";
 
     const comment = document.createElement("p");
@@ -140,62 +129,8 @@ function addComment(btn) {
     input.value = "";
 }
 
-/* ================= SAVE POST (FIXED) ================= */
+/* ================= SAVE POST ================= */
 function savePost(btn) {
-    const post = btn.parentElement;
-
-    const text = post.querySelector("p")?.innerHTML || "";
-    const img = post.querySelector("img");
-
-    const savedPost = document.createElement("div");
-    savedPost.className = "post";
-
-    savedPost.innerHTML = `
-        <p>${text}</p>
-        ${img ? `<img src="${img.src}" />` : ""}
-        <p class="time">⭐ Saved</p>
-    `;
-
-    document.getElementById("savedPosts").appendChild(savedPost);
-
-    showToast("Post saved ⭐");
-}
-function toggleSaved() {
-    const saved = document.getElementById("savedPosts");
-
-    if (saved.style.display === "none") {
-        loadSavedPosts();
-        saved.style.display = "block";
-    } else {
-        saved.style.display = "none";
-    }
-}
-function loadSavedPosts() {
-    const savedDiv = document.getElementById("savedPosts");
-    savedDiv.innerHTML = "";
-
-    const savedPosts = JSON.parse(localStorage.getItem("savedPosts")) || [];
-
-    if (savedPosts.length === 0) {
-        savedDiv.innerHTML = "<p style='text-align:center;'>No saved posts ⭐</p>";
-        return;
-    }
-
-    savedPosts.forEach(post => {
-        const div = document.createElement("div");
-        div.className = "post";
-
-        div.innerHTML = `
-            <p>${post.text}</p>
-            ${post.image ? `<img src="${post.image}">` : ""}
-        `;
-
-        savedDiv.appendChild(div);
-    });
-}
-
-function savePost(btn) {
-    // prevent multiple saves
     if (btn.dataset.saved === "true") {
         showToast("Already saved ⭐");
         return;
@@ -207,7 +142,6 @@ function savePost(btn) {
 
     let savedPosts = JSON.parse(localStorage.getItem("savedPosts")) || [];
 
-    // duplicate check
     const alreadyExists = savedPosts.some(p => p.text === text);
     if (alreadyExists) {
         showToast("Already saved ⭐");
@@ -231,9 +165,15 @@ function savePost(btn) {
     showToast("Post saved ⭐");
 }
 
+/* ================= NAVIGATION ================= */
 function goToSaved() {
     window.location.href = "saved.html";
 }
+function goToProfile() {
+    window.location.href = "profile.html";
+}
+
+/* ================= TOAST ================= */
 function showToast(message) {
     const toast = document.getElementById("toast");
     toast.textContent = message;
@@ -242,29 +182,4 @@ function showToast(message) {
     setTimeout(() => {
         toast.style.display = "none";
     }, 2000);
-}
-
-
-/* ================= FOLLOW ================= */
-function toggleFollow() {
-    const followersCount = document.getElementById("followersCount");
-    const followBtn = document.getElementById("followBtn");
-
-    let followers = Number(localStorage.getItem("followers")) || 0;
-    let isFollowing = localStorage.getItem("isFollowing") === "true";
-
-    if (!isFollowing) {
-        followers++;
-        followBtn.textContent = "Following";
-        followBtn.classList.add("following");
-        localStorage.setItem("isFollowing", "true");
-    } else {
-        followers--;
-        followBtn.textContent = "Follow";
-        followBtn.classList.remove("following");
-        localStorage.setItem("isFollowing", "false");
-    }
-
-    followersCount.textContent = followers;
-    localStorage.setItem("followers", followers);
 }
