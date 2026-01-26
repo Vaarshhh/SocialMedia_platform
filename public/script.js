@@ -140,11 +140,110 @@ function addComment(btn) {
     input.value = "";
 }
 
-/* ================= SAVE POST ================= */
+/* ================= SAVE POST (FIXED) ================= */
 function savePost(btn) {
-    const clone = btn.parentElement.cloneNode(true);
-    document.getElementById("savedPosts").appendChild(clone);
+    const post = btn.parentElement;
+
+    const text = post.querySelector("p")?.innerHTML || "";
+    const img = post.querySelector("img");
+
+    const savedPost = document.createElement("div");
+    savedPost.className = "post";
+
+    savedPost.innerHTML = `
+        <p>${text}</p>
+        ${img ? `<img src="${img.src}" />` : ""}
+        <p class="time">⭐ Saved</p>
+    `;
+
+    document.getElementById("savedPosts").appendChild(savedPost);
+
+    showToast("Post saved ⭐");
 }
+function toggleSaved() {
+    const saved = document.getElementById("savedPosts");
+
+    if (saved.style.display === "none") {
+        loadSavedPosts();
+        saved.style.display = "block";
+    } else {
+        saved.style.display = "none";
+    }
+}
+function loadSavedPosts() {
+    const savedDiv = document.getElementById("savedPosts");
+    savedDiv.innerHTML = "";
+
+    const savedPosts = JSON.parse(localStorage.getItem("savedPosts")) || [];
+
+    if (savedPosts.length === 0) {
+        savedDiv.innerHTML = "<p style='text-align:center;'>No saved posts ⭐</p>";
+        return;
+    }
+
+    savedPosts.forEach(post => {
+        const div = document.createElement("div");
+        div.className = "post";
+
+        div.innerHTML = `
+            <p>${post.text}</p>
+            ${post.image ? `<img src="${post.image}">` : ""}
+        `;
+
+        savedDiv.appendChild(div);
+    });
+}
+
+function savePost(btn) {
+    // prevent multiple saves
+    if (btn.dataset.saved === "true") {
+        showToast("Already saved ⭐");
+        return;
+    }
+
+    const post = btn.parentElement;
+    const text = post.querySelector("p")?.innerHTML || "";
+    const img = post.querySelector("img");
+
+    let savedPosts = JSON.parse(localStorage.getItem("savedPosts")) || [];
+
+    // duplicate check
+    const alreadyExists = savedPosts.some(p => p.text === text);
+    if (alreadyExists) {
+        showToast("Already saved ⭐");
+        btn.dataset.saved = "true";
+        btn.textContent = "⭐ Saved";
+        return;
+    }
+
+    savedPosts.push({
+        text,
+        image: img ? img.src : null
+    });
+
+    localStorage.setItem("savedPosts", JSON.stringify(savedPosts));
+
+    btn.dataset.saved = "true";
+    btn.textContent = "⭐ Saved";
+    btn.style.opacity = "0.6";
+    btn.style.cursor = "not-allowed";
+
+    showToast("Post saved ⭐");
+}
+
+function goToSaved() {
+    window.location.href = "saved.html";
+}
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.style.display = "block";
+
+    setTimeout(() => {
+        toast.style.display = "none";
+    }, 2000);
+}
+
 
 /* ================= FOLLOW ================= */
 function toggleFollow() {
