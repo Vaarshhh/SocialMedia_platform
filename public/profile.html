@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <title>VIBELOOP • Profile</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Bungee&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -10,8 +11,9 @@
 <div class="container">
     <h1 class="logo small">VIBELOOP</h1>
 
+    <!-- PROFILE HEADER -->
     <div class="profile-header">
-        <img id="profilePic" src="default-man.png" alt="Profile Pic" class="profile-pic">
+        <img id="profilePic" src="default-man.png" class="profile-pic">
         <h2 id="profileUser">User</h2>
 
         <div class="follow-stats">
@@ -25,21 +27,30 @@
             </div>
         </div>
 
-        <button id="followBtn" onclick="toggleFollow()">Follow</button>
     </div>
 
-    <!-- EDIT PROFILE SECTION -->
+    <!-- EDIT PROFILE -->
     <div class="profile-edit">
         <h3>Edit Profile</h3>
+
         <input type="text" id="nameInput" placeholder="Change Username">
 
-        <!-- Custom upload button -->
-        <button id="editPicBtn" class="edit-pic-btn">Edit Profile Picture</button>
-
-        <!-- hidden file input -->
+        <button id="editPicBtn" class="edit-pic-btn">
+            Edit Profile Picture
+        </button>
         <input type="file" id="profileImageInput" accept="image/*" hidden>
 
         <button onclick="saveProfile()">Save Profile</button>
+
+        <!-- 🔥 NEW FEATURES -->
+        <button class="danger-btn" onclick="removeProfilePic()">
+             Remove Profile Picture
+        </button>
+
+        <button class="danger-btn" onclick="logout()">
+             Logout
+        </button>
+
         <button onclick="goBack()">⬅ Back to Home</button>
     </div>
 </div>

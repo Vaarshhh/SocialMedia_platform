@@ -1,85 +1,152 @@
 document.addEventListener("DOMContentLoaded", () => {
     const profileUser = document.getElementById("profileUser");
     const profilePic = document.getElementById("profilePic");
-
-    // Load user data from localStorage
-    const username = localStorage.getItem("user") || "User";
-    const profileName = localStorage.getItem("profileName") || username;
-    const profileImage = localStorage.getItem("profileImage") || "";
-
-    profileUser.textContent = profileName;
-
-    if (profileImage) {
-        profilePic.src = profileImage;
-    }
-
-    // Followers data
     const followersCount = document.getElementById("followersCount");
     const followBtn = document.getElementById("followBtn");
 
-    followersCount.textContent = localStorage.getItem("followers") || 0;
+    const username = localStorage.getItem("user");
+    if (!username) {
+        window.location.href = "login.html";
+        return;
+    }
 
-    if (localStorage.getItem("isFollowing") === "true") {
+    /* ================= LOAD PROFILE NAME ================= */
+    const profileNames =
+        JSON.parse(localStorage.getItem("profileNames")) || {};
+
+    profileUser.textContent =
+        profileNames[username] || username;
+
+    /* ================= LOAD PROFILE IMAGE ================= */
+    const profileImages =
+        JSON.parse(localStorage.getItem("profileImages")) || {};
+
+    profilePic.src =
+        profileImages[username] || "default-man.png";
+
+    /* ================= LOAD FOLLOW DATA ================= */
+    const followersData =
+        JSON.parse(localStorage.getItem("followersData")) || {};
+
+    const followingData =
+        JSON.parse(localStorage.getItem("followingData")) || {};
+
+    followersCount.textContent =
+        followersData[username] || 0;
+
+    if (followingData[username]) {
         followBtn.textContent = "Following";
         followBtn.classList.add("following");
     }
 
-    // CUSTOM PROFILE PIC UPLOAD BUTTON
+    /* ================= PROFILE PIC UPLOAD ================= */
     const editPicBtn = document.getElementById("editPicBtn");
     const fileInput = document.getElementById("profileImageInput");
 
     editPicBtn.addEventListener("click", () => {
         fileInput.click();
     });
+
+    fileInput.addEventListener("change", () => {
+        if (!fileInput.files[0]) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            profileImages[username] = reader.result;
+            localStorage.setItem(
+                "profileImages",
+                JSON.stringify(profileImages)
+            );
+            profilePic.src = reader.result;
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    });
 });
 
-
-// Follow / Unfollow
+/* ================= FOLLOW / UNFOLLOW ================= */
 function toggleFollow() {
+    const username = localStorage.getItem("user");
     const followersCount = document.getElementById("followersCount");
     const followBtn = document.getElementById("followBtn");
 
-    let followers = Number(localStorage.getItem("followers")) || 0;
-    let isFollowing = localStorage.getItem("isFollowing") === "true";
+    let followersData =
+        JSON.parse(localStorage.getItem("followersData")) || {};
 
-    if (!isFollowing) {
+    let followingData =
+        JSON.parse(localStorage.getItem("followingData")) || {};
+
+    let followers = followersData[username] || 0;
+
+    if (!followingData[username]) {
         followers++;
+        followingData[username] = true;
         followBtn.textContent = "Following";
         followBtn.classList.add("following");
-        localStorage.setItem("isFollowing", "true");
     } else {
         followers--;
+        followingData[username] = false;
         followBtn.textContent = "Follow";
         followBtn.classList.remove("following");
-        localStorage.setItem("isFollowing", "false");
     }
+
+    followersData[username] = followers;
 
     followersCount.textContent = followers;
-    localStorage.setItem("followers", followers);
+
+    localStorage.setItem(
+        "followersData",
+        JSON.stringify(followersData)
+    );
+    localStorage.setItem(
+        "followingData",
+        JSON.stringify(followingData)
+    );
 }
 
-// Save profile data
+/* ================= SAVE PROFILE ================= */
 function saveProfile() {
-    const nameInput = document.getElementById("nameInput");
-    const profileImageInput = document.getElementById("profileImageInput");
+    const username = localStorage.getItem("user");
+    const nameInput = document.getElementById("nameInput").value.trim();
 
-    const newName = nameInput.value.trim();
-    if (newName) {
-        localStorage.setItem("profileName", newName);
+    let profileNames =
+        JSON.parse(localStorage.getItem("profileNames")) || {};
+
+    if (nameInput) {
+        profileNames[username] = nameInput;
+        localStorage.setItem(
+            "profileNames",
+            JSON.stringify(profileNames)
+        );
+        document.getElementById("profileUser").textContent = nameInput;
     }
 
-    if (profileImageInput.files && profileImageInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = () => {
-            localStorage.setItem("profileImage", reader.result);
-            location.reload(); // reload to show image
-        };
-        reader.readAsDataURL(profileImageInput.files[0]);
-    } else {
-        location.reload();
-    }
+    alert("Profile saved");
 }
 
+/* ================= REMOVE PROFILE PIC ================= */
+function removeProfilePic() {
+    const username = localStorage.getItem("user");
+
+    let profileImages =
+        JSON.parse(localStorage.getItem("profileImages")) || {};
+
+    delete profileImages[username];
+    localStorage.setItem(
+        "profileImages",
+        JSON.stringify(profileImages)
+    );
+
+    document.getElementById("profilePic").src = "default-man.png";
+    alert("Profile picture removed");
+}
+
+/* ================= LOGOUT ================= */
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+}
+
+/* ================= NAVIGATION ================= */
 function goBack() {
     window.location.href = "home.html";
 }

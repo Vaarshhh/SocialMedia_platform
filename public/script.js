@@ -1,37 +1,96 @@
+/* ================= TOGGLE LOGIN / SIGNUP ================= */
+function showLogin() {
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("signupBox").style.display = "none";
+}
+
+function showSignup() {
+    document.getElementById("signupBox").style.display = "block";
+    document.getElementById("loginBox").style.display = "none";
+}
+
+/* ================= SIGNUP ================= */
+function signup() {
+    const username = document.getElementById("signupUsername").value.trim();
+    const password = document.getElementById("signupPassword").value.trim();
+    const warning = document.getElementById("signupWarning");
+
+    if (!username || !password) {
+        warning.textContent = "⚠️ Fill all fields!";
+        warning.style.display = "block";
+        return;
+    }
+
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+
+    if (users.some(u => u.username === username)) {
+        warning.textContent = "⚠️ Username already exists!";
+        warning.style.display = "block";
+        return;
+    }
+
+    users.push({ username, password });
+    localStorage.setItem("users", JSON.stringify(users));
+
+    alert("✅ Account created! Please login.");
+    showLogin();
+}
+
 /* ================= LOGIN ================= */
 function login() {
-    const username = document.querySelector("input[type='text']").value;
-    const password = document.querySelector("input[type='password']").value;
-
-    const correctUsername = "Vaarshhh";
-    const correctPassword = "Vaarsh123";
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
     const warning = document.getElementById("warning");
 
-    if (username !== correctUsername || password !== correctPassword) {
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+
+    const user = users.find(
+        u => u.username === username && u.password === password
+    );
+
+    if (!user) {
         warning.textContent = "⚠️ Wrong username or password!";
         warning.style.display = "block";
         return;
     }
 
-    warning.style.display = "none";
     localStorage.setItem("user", username);
     window.location.href = "home.html";
 }
 
 /* ================= DOM LOAD ================= */
 document.addEventListener("DOMContentLoaded", () => {
+
+    const loggedUser = localStorage.getItem("user");
+
+    // Auth protection
+    if (!loggedUser && window.location.pathname.includes("home.html")) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    // Default login view
+    if (document.getElementById("loginBox")) {
+        showLogin();
+    }
+
+    // Show username
     const userSpan = document.getElementById("user");
     if (userSpan) {
-        userSpan.textContent = localStorage.getItem("user") || "User";
+        userSpan.textContent = loggedUser || "User";
     }
 
-    // PROFILE ICON LOGIC
+    /* ================= PROFILE ICON ================= */
     const profileIcon = document.getElementById("profileIcon");
-    const profileImage = localStorage.getItem("profileImage");
-    if (profileIcon) {
-        profileIcon.src = profileImage ? profileImage : "default-man.png";
+    if (profileIcon && loggedUser) {
+        let profileImages =
+            JSON.parse(localStorage.getItem("profileImages")) || {};
+
+        profileIcon.src =
+            profileImages[loggedUser] || "default-man.png";
     }
 
+    /* ================= IMAGE PREVIEW BEFORE POST ================= */
     const cameraBtn = document.getElementById("cameraBtn");
     const imageInput = document.getElementById("imageInput");
 
@@ -39,71 +98,123 @@ document.addEventListener("DOMContentLoaded", () => {
         cameraBtn.addEventListener("click", () => imageInput.click());
 
         imageInput.addEventListener("change", () => {
-            if (imageInput.files && imageInput.files[0]) {
-                const oldPreview = document.getElementById("imagePreview");
-                if (oldPreview) oldPreview.remove();
+            if (!imageInput.files[0]) return;
 
-                const img = document.createElement("img");
-                img.id = "imagePreview";
-                img.src = URL.createObjectURL(imageInput.files[0]);
-                img.style.width = "100px";
-                img.style.height = "100px";
-                img.style.borderRadius = "10px";
-                img.style.objectFit = "cover";
+            // remove old preview
+            const oldPreview = document.getElementById("imagePreview");
+            if (oldPreview) oldPreview.remove();
 
-                cameraBtn.style.display = "none";
-                document.querySelector(".camera-box").appendChild(img);
-            }
+            const img = document.createElement("img");
+            img.id = "imagePreview";
+            img.src = URL.createObjectURL(imageInput.files[0]);
+            img.style.width = "120px";
+            img.style.height = "120px";
+            img.style.objectFit = "cover";
+            img.style.borderRadius = "10px";
+            img.style.marginTop = "10px";
+
+            document.querySelector(".camera-box").appendChild(img);
+
+            cameraBtn.style.display = "none";
         });
+    }
+
+    if (window.location.pathname.includes("home.html")) {
+        loadPosts();
     }
 });
 
-/* ================= POST ================= */
+/* ================= ADD POST ================= */
 function addPost() {
-    const text = document.querySelector("textarea").value;
+    const text = document.querySelector("textarea").value.trim();
     const imageInput = document.getElementById("imageInput");
+    const username = localStorage.getItem("user");
 
-    if (!text) {
-        alert("Write something first!");
+    if (!text && !imageInput.files[0]) {
+        alert("Write something or add an image!");
         return;
     }
 
-    const post = document.createElement("div");
-    post.className = "post";
+    let posts = JSON.parse(localStorage.getItem("posts")) || {};
+    if (!posts[username]) posts[username] = [];
 
-    let imageHTML = "";
-    if (imageInput.files[0]) {
-        imageHTML = `<img src="${URL.createObjectURL(imageInput.files[0])}" />`;
-    }
+    posts[username].push({
+        text,
+        image: imageInput.files[0]
+            ? URL.createObjectURL(imageInput.files[0])
+            : null
+    });
 
-    post.innerHTML = `
-        <p>${text}</p>
-        ${imageHTML}
-        <div class="reactions">
-            <button onclick="react(this)">👍 <span>0</span></button>
-            <button onclick="react(this)">❤️ <span>0</span></button>
-            <button onclick="react(this)">😂 <span>0</span></button>
-        </div>
+    localStorage.setItem("posts", JSON.stringify(posts));
 
-        <div class="comments-section">
-            <input type="text" placeholder="Write a comment..." />
-            <button onclick="addComment(this)">Post</button>
-            <div class="comments"></div>
-        </div>
-
-        <button class="save-btn" onclick="savePost(this)">⭐ Save</button>
-    `;
-
-    document.querySelector(".container").appendChild(post);
-
-    // RESET INPUTS
+    // reset inputs
     document.querySelector("textarea").value = "";
     imageInput.value = "";
 
-    // Remove preview + show button
+    // remove preview & restore button
     const preview = document.getElementById("imagePreview");
     if (preview) preview.remove();
     document.getElementById("cameraBtn").style.display = "inline-block";
+
+    loadPosts();
+}
+
+/* ================= LOAD POSTS (ONLY OWN POSTS HAVE DELETE) ================= */
+function loadPosts() {
+    const username = localStorage.getItem("user");
+    const container = document.querySelector(".container");
+
+    document.querySelectorAll(".post").forEach(p => p.remove());
+
+    let posts = JSON.parse(localStorage.getItem("posts")) || {};
+    let userPosts = posts[username] || [];
+
+    userPosts.forEach((postData, index) => {
+        const post = document.createElement("div");
+        post.className = "post";
+
+        post.innerHTML = `
+            <div class="post-header">
+                <strong>${username}</strong>
+                <button class="delete-btn" onclick="deletePost(${index})">
+                    Delete
+                </button>
+            </div>
+
+            <p>${postData.text}</p>
+            ${postData.image ? `<img src="${postData.image}" />` : ""}
+
+            <div class="reactions">
+                <button onclick="react(this)">👍 <span>0</span></button>
+                <button onclick="react(this)">❤️ <span>0</span></button>
+                <button onclick="react(this)">😂 <span>0</span></button>
+            </div>
+
+            <div class="comments-section">
+                <input type="text" placeholder="Write a comment..." />
+                <button onclick="addComment(this)">Post</button>
+                <div class="comments"></div>
+            </div>
+
+            <button class="save-btn" onclick="savePost(this)">⭐ Save</button>
+        `;
+
+        container.appendChild(post);
+    });
+}
+
+/* ================= DELETE POST ================= */
+function deletePost(index) {
+    const username = localStorage.getItem("user");
+    let posts = JSON.parse(localStorage.getItem("posts")) || {};
+
+    if (!posts[username]) return;
+    if (!confirm("Delete this post?")) return;
+
+    posts[username].splice(index, 1);
+    localStorage.setItem("posts", JSON.stringify(posts));
+
+    loadPosts();
 }
 
 /* ================= REACTIONS ================= */
@@ -115,15 +226,14 @@ function react(btn) {
 /* ================= COMMENTS ================= */
 function addComment(btn) {
     const input = btn.previousElementSibling;
-    const commentText = input.value.trim();
-
-    if (!commentText) return;
+    const text = input.value.trim();
+    if (!text) return;
 
     const commentsDiv = btn.nextElementSibling;
-    const username = localStorage.getItem("user") || "User";
+    const username = localStorage.getItem("user");
 
     const comment = document.createElement("p");
-    comment.innerHTML = `<strong>${username}</strong>: ${commentText}`;
+    comment.innerHTML = `<strong>${username}</strong>: ${text}`;
 
     commentsDiv.appendChild(comment);
     input.value = "";
@@ -131,22 +241,14 @@ function addComment(btn) {
 
 /* ================= SAVE POST ================= */
 function savePost(btn) {
-    if (btn.dataset.saved === "true") {
-        showToast("Already saved ⭐");
-        return;
-    }
-
     const post = btn.parentElement;
     const text = post.querySelector("p")?.innerHTML || "";
     const img = post.querySelector("img");
 
     let savedPosts = JSON.parse(localStorage.getItem("savedPosts")) || [];
 
-    const alreadyExists = savedPosts.some(p => p.text === text);
-    if (alreadyExists) {
+    if (savedPosts.some(p => p.text === text)) {
         showToast("Already saved ⭐");
-        btn.dataset.saved = "true";
-        btn.textContent = "⭐ Saved";
         return;
     }
 
@@ -156,12 +258,6 @@ function savePost(btn) {
     });
 
     localStorage.setItem("savedPosts", JSON.stringify(savedPosts));
-
-    btn.dataset.saved = "true";
-    btn.textContent = "⭐ Saved";
-    btn.style.opacity = "0.6";
-    btn.style.cursor = "not-allowed";
-
     showToast("Post saved ⭐");
 }
 
@@ -169,8 +265,14 @@ function savePost(btn) {
 function goToSaved() {
     window.location.href = "saved.html";
 }
+
 function goToProfile() {
     window.location.href = "profile.html";
+}
+
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
 }
 
 /* ================= TOAST ================= */
@@ -178,8 +280,5 @@ function showToast(message) {
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.style.display = "block";
-
-    setTimeout(() => {
-        toast.style.display = "none";
-    }, 2000);
+    setTimeout(() => (toast.style.display = "none"), 2000);
 }
