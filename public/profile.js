@@ -1,152 +1,161 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const profileUser = document.getElementById("profileUser");
-    const profilePic = document.getElementById("profilePic");
-    const followersCount = document.getElementById("followersCount");
-    const followBtn = document.getElementById("followBtn");
+  const loggedUser = localStorage.getItem("user");
+  const viewUser = localStorage.getItem("viewProfile") || loggedUser;
 
-    const username = localStorage.getItem("user");
-    if (!username) {
-        window.location.href = "login.html";
-        return;
-    }
+  /* ================= USERNAME ================= */
+  const profileUser = document.getElementById("profileUser");
+  if (profileUser) profileUser.textContent = viewUser;
 
-    /* ================= LOAD PROFILE NAME ================= */
-    const profileNames =
-        JSON.parse(localStorage.getItem("profileNames")) || {};
+  /* ================= PROFILE PIC ================= */
+  const profilePic = document.getElementById("profilePic");
+  const profileImages =
+    JSON.parse(localStorage.getItem("profileImages")) || {};
 
-    profileUser.textContent =
-        profileNames[username] || username;
+  if (profilePic) {
+    profilePic.src = profileImages[viewUser] || "default-man.png";
+  }
 
-    /* ================= LOAD PROFILE IMAGE ================= */
-    const profileImages =
-        JSON.parse(localStorage.getItem("profileImages")) || {};
+  /* ================= FOLLOW DATA ================= */
+  let followers =
+    JSON.parse(localStorage.getItem("followers")) || {};
+  let following =
+    JSON.parse(localStorage.getItem("following")) || {};
 
-    profilePic.src =
-        profileImages[username] || "default-man.png";
+  followers[viewUser] = followers[viewUser] || [];
+  following[loggedUser] = following[loggedUser] || [];
 
-    /* ================= LOAD FOLLOW DATA ================= */
-    const followersData =
-        JSON.parse(localStorage.getItem("followersData")) || {};
+  document.getElementById("followersCount").textContent =
+    followers[viewUser].length;
 
-    const followingData =
-        JSON.parse(localStorage.getItem("followingData")) || {};
+  document.getElementById("followingCount").textContent =
+    following[viewUser]?.length || 0;
 
-    followersCount.textContent =
-        followersData[username] || 0;
+  /* ================= OWNER CONTROLS ================= */
+  const ownerControls = document.getElementById("ownerControls");
 
-    if (followingData[username]) {
-        followBtn.textContent = "Following";
-        followBtn.classList.add("following");
-    }
-
-    /* ================= PROFILE PIC UPLOAD ================= */
-    const editPicBtn = document.getElementById("editPicBtn");
-    const fileInput = document.getElementById("profileImageInput");
-
-    editPicBtn.addEventListener("click", () => {
-        fileInput.click();
-    });
-
-    fileInput.addEventListener("change", () => {
-        if (!fileInput.files[0]) return;
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            profileImages[username] = reader.result;
-            localStorage.setItem(
-                "profileImages",
-                JSON.stringify(profileImages)
-            );
-            profilePic.src = reader.result;
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-    });
-});
-
-/* ================= FOLLOW / UNFOLLOW ================= */
-function toggleFollow() {
-    const username = localStorage.getItem("user");
-    const followersCount = document.getElementById("followersCount");
-    const followBtn = document.getElementById("followBtn");
-
-    let followersData =
-        JSON.parse(localStorage.getItem("followersData")) || {};
-
-    let followingData =
-        JSON.parse(localStorage.getItem("followingData")) || {};
-
-    let followers = followersData[username] || 0;
-
-    if (!followingData[username]) {
-        followers++;
-        followingData[username] = true;
-        followBtn.textContent = "Following";
-        followBtn.classList.add("following");
-    } else {
-        followers--;
-        followingData[username] = false;
-        followBtn.textContent = "Follow";
-        followBtn.classList.remove("following");
-    }
-
-    followersData[username] = followers;
-
-    followersCount.textContent = followers;
-
-    localStorage.setItem(
-        "followersData",
-        JSON.stringify(followersData)
-    );
-    localStorage.setItem(
-        "followingData",
-        JSON.stringify(followingData)
-    );
+if (ownerControls) {
+  if (viewUser === loggedUser) {
+    ownerControls.style.display = "block";
+  } else {
+    ownerControls.style.display = "none";
+  }
 }
+
+  /* ================= FOLLOW BUTTON ================= */
+  const header = document.querySelector(".profile-header");
+
+  if (viewUser !== loggedUser && header) {
+    // remove old button if exists
+    const oldBtn = document.querySelector(".follow-btn");
+    if (oldBtn) oldBtn.remove();
+
+    const followBtn = document.createElement("button");
+    followBtn.className = "follow-btn";
+
+    const isFollowing = followers[viewUser].includes(loggedUser);
+    followBtn.textContent = isFollowing ? "Following" : "Follow";
+
+    followBtn.onclick = () => {
+      if (followers[viewUser].includes(loggedUser)) {
+        // UNFOLLOW
+        followers[viewUser] = followers[viewUser].filter(
+          u => u !== loggedUser
+        );
+        following[loggedUser] = following[loggedUser].filter(
+          u => u !== viewUser
+        );
+        followBtn.textContent = "Follow";
+      } else {
+        // FOLLOW
+        followers[viewUser].push(loggedUser);
+        following[loggedUser].push(viewUser);
+        followBtn.textContent = "Following";
+      }
+
+      localStorage.setItem("followers", JSON.stringify(followers));
+      localStorage.setItem("following", JSON.stringify(following));
+
+      document.getElementById("followersCount").textContent =
+        followers[viewUser].length;
+    };
+
+    header.appendChild(followBtn);
+  }
+
+  /* ================= LOAD POSTS ================= */
+  if (typeof loadUserPosts === "function") {
+    loadUserPosts(viewUser);
+  }
+
+  /* ================= PROFILE PIC UPLOAD (OWNER ONLY) ================= */
+  const editPicBtn = document.getElementById("editPicBtn");
+  const fileInput = document.getElementById("profileImageInput");
+
+  if (editPicBtn && fileInput && viewUser === loggedUser) {
+    editPicBtn.onclick = () => fileInput.click();
+
+    fileInput.onchange = () => {
+      if (!fileInput.files[0]) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        profileImages[loggedUser] = reader.result;
+        localStorage.setItem(
+          "profileImages",
+          JSON.stringify(profileImages)
+        );
+        profilePic.src = reader.result;
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    };
+  }
+});
 
 /* ================= SAVE PROFILE ================= */
 function saveProfile() {
-    const username = localStorage.getItem("user");
-    const nameInput = document.getElementById("nameInput").value.trim();
+  const username = localStorage.getItem("user");
+  const nameInput = document.getElementById("nameInput")?.value.trim();
 
-    let profileNames =
-        JSON.parse(localStorage.getItem("profileNames")) || {};
+  if (!nameInput) return;
 
-    if (nameInput) {
-        profileNames[username] = nameInput;
-        localStorage.setItem(
-            "profileNames",
-            JSON.stringify(profileNames)
-        );
-        document.getElementById("profileUser").textContent = nameInput;
-    }
+  let profileNames =
+    JSON.parse(localStorage.getItem("profileNames")) || {};
 
-    alert("Profile saved");
+  profileNames[username] = nameInput;
+  localStorage.setItem(
+    "profileNames",
+    JSON.stringify(profileNames)
+  );
+
+  document.getElementById("profileUser").textContent = nameInput;
+  alert("Profile saved");
 }
 
 /* ================= REMOVE PROFILE PIC ================= */
 function removeProfilePic() {
-    const username = localStorage.getItem("user");
+  const username = localStorage.getItem("user");
 
-    let profileImages =
-        JSON.parse(localStorage.getItem("profileImages")) || {};
+  let profileImages =
+    JSON.parse(localStorage.getItem("profileImages")) || {};
 
-    delete profileImages[username];
-    localStorage.setItem(
-        "profileImages",
-        JSON.stringify(profileImages)
-    );
+  delete profileImages[username];
+  localStorage.setItem(
+    "profileImages",
+    JSON.stringify(profileImages)
+  );
 
-    document.getElementById("profilePic").src = "default-man.png";
-    alert("Profile picture removed");
+  document.getElementById("profilePic").src = "default-man.png";
+  alert("Profile picture removed");
 }
 
 /* ================= LOGOUT ================= */
 function logout() {
-    localStorage.removeItem("user");
-    window.location.href = "login.html";
+  localStorage.removeItem("user");
+  localStorage.removeItem("viewProfile");
+  window.location.href = "login.html";
 }
 
 /* ================= NAVIGATION ================= */
 function goBack() {
-    window.location.href = "home.html";
+  window.location.href = "home.html";
 }

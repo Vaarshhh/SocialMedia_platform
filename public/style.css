@@ -13,7 +13,7 @@
   text-align: center;
 
   /* Fallback color */
-  color: #de0d87;
+  color: #0d0c0c;
 
   /* Black → Violet → Pink gradient */
   background: linear-gradient(
@@ -29,7 +29,7 @@
   /* Neon glow */
   text-shadow:
     0 0 8px rgba(126, 37, 153, 0.7),
-    0 0 14px rgba(236, 72, 153, 0.7);
+    0 0 14px rgba(236, 23, 183, 0.7);
 }
 
 /* Smaller logo (Home page) */
@@ -64,11 +64,13 @@
 body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #160202, #e70fa2);
+  background: #0f172a;
+  color: white;
+  font-family: 'Poppins', sans-serif;
   min-height: 100vh;
-  position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
+
 
 /* Background pattern only */
 body::before {
@@ -112,34 +114,34 @@ body::before {
 /* ================================
    CARD CONTAINER
 ================================ */
-.container {
-  width: 420px;
-  max-width: 92%;
-  margin: 60px auto;
-  background: #ffffff;
-  padding: 22px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+.suggestion-card {
+  margin: 15px auto;
+  padding: 15px;
+  width: 300px;
+  border-radius: 10px;
+  background: #f221a2;
+  color: rgb(13, 12, 12);
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1px solid #ff2fd4;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
 }
+
+.suggestion-card:hover {
+  background: #ff2fd4;
+  color: black;
+  transform: scale(1.05);
+}
+
+
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    overflow-y: auto; /* allow scrolling */
-}
-
-.container {
-    max-height: 80vh; /* height of post area */
-    overflow-y: auto; /* enable scroll */
-    padding: 10px;
-}
-
-.post {
-    background: #fff;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  margin: 0;
+  padding: 0;
+  background: #0f172a;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
 }
 
 /* ================================
@@ -211,13 +213,7 @@ button:hover {
 /* ================================
    POSTS
 ================================ */
-.post {
-  background: #f4f4ff;
-  padding: 12px;
-  margin-top: 15px;
-  border-radius: 8px;
-  animation: fade 0.5s;
-}
+
 
 .post img {
   width: 100%;
@@ -340,27 +336,7 @@ button:hover {
     border: 3px solid #fff;
     box-shadow: 0 0 15px rgba(0,0,0,0.3);
 }
-.profile-pic {
-    width: 200px;
-    height: auto;
-    max-width: 100%;
-    border-radius: 12px;
-}
-.profile-pic {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: contain;  /* will show full image */
-    background: #fff;
-}
-.profile-pic {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #fff;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
-}
+
 
 
 .edit-pic-btn {
@@ -396,15 +372,15 @@ html, body {
     height: 100%;
 }
 
-/* Home page layout */
 body {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    background: #0f172a; /* optional background */
-    font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #0f172a;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
 }
+
 
 /* Main container should fill screen */
 .container {
@@ -414,12 +390,160 @@ body {
     padding: 20px;
     box-sizing: border-box;
 }
-.container {
-    overflow-y: auto;
-}
+
+
 .top-right {
     position: fixed;
     top: 15px;
     right: 15px;
     z-index: 1000;
+}
+
+
+.logo {
+  text-align: center;
+  color: violet;
+  margin-top: 30px;
+}
+
+.search-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  gap: 10px;
+}
+
+.search-box input {
+  padding: 12px 18px;
+  width: 380px;          /* 🔥 longer input */
+  max-width: 80%;
+  font-size: 16px;
+
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: hotpink;
+  box-shadow: 0 0 8px rgba(255, 105, 180, 0.4);
+}
+
+.search-box button {
+  padding: 12px 22px;
+  border-radius: 25px;
+
+  background: linear-gradient(135deg, hotpink, #a445b2);
+  color: rgb(9, 1, 1);
+  font-size: 15px;
+  font-weight: 600;
+
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-box button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+
+#searchResults {
+  margin-top: 10px;
+}
+
+.result-item {
+  background: #aa8aa0;
+  padding: 10px;
+  margin: 5px auto;
+  width: 300px;
+  cursor: pointer;
+}
+
+.profile-container {
+  width: 400px;
+  margin: 50px auto;
+  text-align: center;
+}
+
+.profile-container button {
+  padding: 10px;
+  background: rgb(238, 70, 152);
+  border: none;
+  cursor: pointer;
+}
+
+.post {
+  background: #f4f4ff;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 8px;
+}
+
+/* 🔒 Hide owner-only UI by default */
+#ownerControls {
+  display: none;
+}
+.search-header button {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 18px;
+}
+
+
+.search-header input {
+    width: 100%;
+    padding: 16px 25px;
+    font-size: 17px;
+    border-radius: 40px;
+    border: 2px solid #eb5ee9;
+    box-sizing: border-box;
+}
+.search-header {
+    width: 100%;
+}
+.search-results {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.result-item {
+  background: #1e293b;
+  color: white;
+  padding: 12px;
+  margin: 10px auto;
+  width: 300px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #ff2fd4;
+  transition: 0.2s;
+}
+
+.result-item:hover {
+  background: #ff2fd4;
+  color: black;
+}
+/* Center entire page content */
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Keep sections centered */
+.search-header,
+.search-results,
+.search-content {
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+}
+
+/* Center result cards properly */
+.result-item,
+.suggestion-card {
+  margin-left: auto;
+  margin-right: auto;
 }

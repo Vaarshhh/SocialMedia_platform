@@ -1,284 +1,333 @@
 /* ================= TOGGLE LOGIN / SIGNUP ================= */
 function showLogin() {
-    document.getElementById("loginBox").style.display = "block";
-    document.getElementById("signupBox").style.display = "none";
+  const loginBox = document.getElementById("loginBox");
+  const signupBox = document.getElementById("signupBox");
+  if (!loginBox || !signupBox) return;
+
+  loginBox.style.display = "block";
+  signupBox.style.display = "none";
 }
 
 function showSignup() {
-    document.getElementById("signupBox").style.display = "block";
-    document.getElementById("loginBox").style.display = "none";
+  const loginBox = document.getElementById("loginBox");
+  const signupBox = document.getElementById("signupBox");
+  if (!loginBox || !signupBox) return;
+
+  signupBox.style.display = "block";
+  loginBox.style.display = "none";
 }
 
 /* ================= SIGNUP ================= */
 function signup() {
-    const username = document.getElementById("signupUsername").value.trim();
-    const password = document.getElementById("signupPassword").value.trim();
-    const warning = document.getElementById("signupWarning");
+  const username = document.getElementById("signupUsername").value.trim();
+  const password = document.getElementById("signupPassword").value.trim();
+  const warning = document.getElementById("signupWarning");
 
-    if (!username || !password) {
-        warning.textContent = "⚠️ Fill all fields!";
-        warning.style.display = "block";
-        return;
-    }
+  if (!username || !password) {
+    warning.textContent = "⚠️ Fill all fields!";
+    warning.style.display = "block";
+    return;
+  }
 
-    let users = JSON.parse(localStorage.getItem("users")) || [];
+  let users = JSON.parse(localStorage.getItem("users")) || [];
 
-    if (users.some(u => u.username === username)) {
-        warning.textContent = "⚠️ Username already exists!";
-        warning.style.display = "block";
-        return;
-    }
+  if (users.some(u => u.username === username)) {
+    warning.textContent = "⚠️ Username already exists!";
+    warning.style.display = "block";
+    return;
+  }
 
-    users.push({ username, password });
-    localStorage.setItem("users", JSON.stringify(users));
+  users.push({ username, password });
+  localStorage.setItem("users", JSON.stringify(users));
 
-    alert("✅ Account created! Please login.");
-    showLogin();
+  alert("✅ Account created! Please login.");
+  showLogin();
 }
 
 /* ================= LOGIN ================= */
 function login() {
-    const username = document.getElementById("loginUsername").value.trim();
-    const password = document.getElementById("loginPassword").value.trim();
-    const warning = document.getElementById("warning");
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  const warning = document.getElementById("warning");
 
-    let users = JSON.parse(localStorage.getItem("users")) || [];
+  let users = JSON.parse(localStorage.getItem("users")) || [];
 
-    const user = users.find(
-        u => u.username === username && u.password === password
-    );
+  const user = users.find(
+    u => u.username === username && u.password === password
+  );
 
-    if (!user) {
-        warning.textContent = "⚠️ Wrong username or password!";
-        warning.style.display = "block";
-        return;
-    }
+  if (!user) {
+    warning.textContent = "⚠️ Wrong username or password!";
+    warning.style.display = "block";
+    return;
+  }
 
-    localStorage.setItem("user", username);
-    window.location.href = "home.html";
+  localStorage.setItem("user", username);
+  window.location.href = "home.html";
 }
 
 /* ================= DOM LOAD ================= */
 document.addEventListener("DOMContentLoaded", () => {
+  const loggedUser = localStorage.getItem("user");
 
-    const loggedUser = localStorage.getItem("user");
+  if (!loggedUser && window.location.pathname.includes("home.html")) {
+    window.location.href = "login.html";
+    return;
+  }
 
-    // Auth protection
-    if (!loggedUser && window.location.pathname.includes("home.html")) {
-        window.location.href = "login.html";
-        return;
-    }
+  if (document.getElementById("loginBox")) showLogin();
 
-    // Default login view
-    if (document.getElementById("loginBox")) {
-        showLogin();
-    }
+  const userSpan = document.getElementById("user");
+  if (userSpan) userSpan.textContent = loggedUser || "User";
 
-    // Show username
-    const userSpan = document.getElementById("user");
-    if (userSpan) {
-        userSpan.textContent = loggedUser || "User";
-    }
+  if (window.location.pathname.includes("home.html")) {
+    initImageUpload();   // ✅ IMAGE SYSTEM INIT
+    loadPosts();
+  }
+if (window.location.pathname.includes("search.html")) {
+  loadSuggestions();
+}
 
-    /* ================= PROFILE ICON ================= */
-    const profileIcon = document.getElementById("profileIcon");
-    if (profileIcon && loggedUser) {
-        let profileImages =
-            JSON.parse(localStorage.getItem("profileImages")) || {};
+  if (window.location.pathname.includes("profile.html")) {
+    loadProfile();
+  }
 
-        profileIcon.src =
-            profileImages[loggedUser] || "default-man.png";
-    }
+  const searchBtn = document.getElementById("searchBtn");
+  const searchInput = document.getElementById("searchInput");
 
-    /* ================= IMAGE PREVIEW BEFORE POST ================= */
-    const cameraBtn = document.getElementById("cameraBtn");
-    const imageInput = document.getElementById("imageInput");
-
-    if (cameraBtn && imageInput) {
-        cameraBtn.addEventListener("click", () => imageInput.click());
-
-        imageInput.addEventListener("change", () => {
-            if (!imageInput.files[0]) return;
-
-            // remove old preview
-            const oldPreview = document.getElementById("imagePreview");
-            if (oldPreview) oldPreview.remove();
-
-            const img = document.createElement("img");
-            img.id = "imagePreview";
-            img.src = URL.createObjectURL(imageInput.files[0]);
-            img.style.width = "120px";
-            img.style.height = "120px";
-            img.style.objectFit = "cover";
-            img.style.borderRadius = "10px";
-            img.style.marginTop = "10px";
-
-            document.querySelector(".camera-box").appendChild(img);
-
-            cameraBtn.style.display = "none";
-        });
-    }
-
-    if (window.location.pathname.includes("home.html")) {
-        loadPosts();
-    }
+  if (searchBtn) searchBtn.onclick = searchUsers;
+  if (searchInput) {
+    searchInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") searchUsers();
+    });
+  }
 });
+
+/* ================= IMAGE UPLOAD SYSTEM ================= */
+let selectedImage = "";
+
+function initImageUpload() {
+  const cameraBtn = document.getElementById("cameraBtn");
+  const imageInput = document.getElementById("imageInput");
+
+  if (!cameraBtn || !imageInput) return;
+
+  cameraBtn.addEventListener("click", () => {
+    imageInput.click();
+  });
+
+  imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      selectedImage = e.target.result;
+      alert("Image selected ✅");
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 /* ================= ADD POST ================= */
 function addPost() {
-    const text = document.querySelector("textarea").value.trim();
-    const imageInput = document.getElementById("imageInput");
-    const username = localStorage.getItem("user");
+  const textarea = document.querySelector("textarea");
+  const text = textarea.value.trim();
+  const username = localStorage.getItem("user");
 
-    if (!text && !imageInput.files[0]) {
-        alert("Write something or add an image!");
-        return;
-    }
+  if (!text && !selectedImage) {
+    alert("Write something or add an image!");
+    return;
+  }
 
-    let posts = JSON.parse(localStorage.getItem("posts")) || {};
-    if (!posts[username]) posts[username] = [];
+  let posts = JSON.parse(localStorage.getItem("posts")) || {};
+  posts[username] = posts[username] || [];
 
-    posts[username].push({
-        text,
-        image: imageInput.files[0]
-            ? URL.createObjectURL(imageInput.files[0])
-            : null
-    });
+  posts[username].push({
+    text: text,
+    image: selectedImage,
+    date: new Date()
+  });
 
-    localStorage.setItem("posts", JSON.stringify(posts));
+  localStorage.setItem("posts", JSON.stringify(posts));
 
-    // reset inputs
-    document.querySelector("textarea").value = "";
-    imageInput.value = "";
+  textarea.value = "";
+  selectedImage = "";
+  document.getElementById("imageInput").value = "";
 
-    // remove preview & restore button
-    const preview = document.getElementById("imagePreview");
-    if (preview) preview.remove();
-    document.getElementById("cameraBtn").style.display = "inline-block";
-
-    loadPosts();
+  alert("Post added 🎉");
+  loadPosts();
 }
 
-/* ================= LOAD POSTS (ONLY OWN POSTS HAVE DELETE) ================= */
+/* ================= LOAD POSTS (HOME FEED) ================= */
 function loadPosts() {
-    const username = localStorage.getItem("user");
-    const container = document.querySelector(".container");
+  const feed = document.getElementById("feed");
+  if (!feed) return;
 
-    document.querySelectorAll(".post").forEach(p => p.remove());
+  const posts = JSON.parse(localStorage.getItem("posts")) || {};
+  const username = localStorage.getItem("user");
 
-    let posts = JSON.parse(localStorage.getItem("posts")) || {};
-    let userPosts = posts[username] || [];
+  feed.innerHTML = "";
 
-    userPosts.forEach((postData, index) => {
-        const post = document.createElement("div");
-        post.className = "post";
+  (posts[username] || []).forEach((post, index) => {
+    const div = document.createElement("div");
+    div.className = "post";
 
-        post.innerHTML = `
-            <div class="post-header">
-                <strong>${username}</strong>
-                <button class="delete-btn" onclick="deletePost(${index})">
-                    Delete
-                </button>
-            </div>
+    div.innerHTML = `
+      <p>${post.text}</p>
+      ${post.image ? `<img src="${post.image}" style="max-width:100%; border-radius:10px;">` : ""}
+      <button class="delete-btn" style="margin-top:5px;">Delete</button>
+    `;
 
-            <p>${postData.text}</p>
-            ${postData.image ? `<img src="${postData.image}" />` : ""}
+    // Add click listener to delete button
+    div.querySelector(".delete-btn").onclick = () => {
+      deletePost(index);
+    };
 
-            <div class="reactions">
-                <button onclick="react(this)">👍 <span>0</span></button>
-                <button onclick="react(this)">❤️ <span>0</span></button>
-                <button onclick="react(this)">😂 <span>0</span></button>
-            </div>
-
-            <div class="comments-section">
-                <input type="text" placeholder="Write a comment..." />
-                <button onclick="addComment(this)">Post</button>
-                <div class="comments"></div>
-            </div>
-
-            <button class="save-btn" onclick="savePost(this)">⭐ Save</button>
-        `;
-
-        container.appendChild(post);
-    });
+    feed.appendChild(div);
+  });
 }
+
+/* ================= SEARCH USERS ================= */
+function searchUsers() {
+  const searchInput = document.getElementById("searchInput");
+  const searchResults = document.getElementById("searchResults"); // or suggestions
+
+  if (!searchInput || !searchResults) return;
+
+  const query = searchInput.value.toLowerCase().trim();
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const current = localStorage.getItem("user");
+
+  searchResults.innerHTML = "";
+
+  if (query === "") {
+    searchResults.innerHTML = "<p>Please enter a name.</p>";
+    return;
+  }
+
+  const filtered = users.filter(
+    u =>
+      u.username.toLowerCase().includes(query) &&
+      u.username !== current
+  );
+
+  if (filtered.length === 0) {
+    searchResults.innerHTML = "<p>No users found.</p>";
+    return;
+  }
+
+  filtered.forEach(user => {
+    const item = document.createElement("div");
+    item.className = "result-item";
+    item.innerHTML = `<strong>${user.username}</strong>`;
+
+    item.onclick = () => {
+      localStorage.setItem("viewProfile", user.username);
+      window.location.href = "profile.html";
+    };
+
+    searchResults.appendChild(item);
+  });
+}
+const imageInput = document.getElementById("imageInput");
+const previewImage = document.getElementById("previewImage");
+
+if (imageInput) {
+  imageInput.addEventListener("change", function () {
+    const file = this.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        previewImage.src = e.target.result;
+        previewImage.style.display = "block";
+      };
+
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
 
 /* ================= DELETE POST ================= */
 function deletePost(index) {
-    const username = localStorage.getItem("user");
-    let posts = JSON.parse(localStorage.getItem("posts")) || {};
+  const username = localStorage.getItem("user");
+  let posts = JSON.parse(localStorage.getItem("posts")) || {};
 
-    if (!posts[username]) return;
-    if (!confirm("Delete this post?")) return;
+  posts[username].splice(index, 1);
+  localStorage.setItem("posts", JSON.stringify(posts));
 
-    posts[username].splice(index, 1);
-    localStorage.setItem("posts", JSON.stringify(posts));
-
-    loadPosts();
-}
-
-/* ================= REACTIONS ================= */
-function react(btn) {
-    const span = btn.querySelector("span");
-    span.textContent = Number(span.textContent) + 1;
-}
-
-/* ================= COMMENTS ================= */
-function addComment(btn) {
-    const input = btn.previousElementSibling;
-    const text = input.value.trim();
-    if (!text) return;
-
-    const commentsDiv = btn.nextElementSibling;
-    const username = localStorage.getItem("user");
-
-    const comment = document.createElement("p");
-    comment.innerHTML = `<strong>${username}</strong>: ${text}`;
-
-    commentsDiv.appendChild(comment);
-    input.value = "";
-}
-
-/* ================= SAVE POST ================= */
-function savePost(btn) {
-    const post = btn.parentElement;
-    const text = post.querySelector("p")?.innerHTML || "";
-    const img = post.querySelector("img");
-
-    let savedPosts = JSON.parse(localStorage.getItem("savedPosts")) || [];
-
-    if (savedPosts.some(p => p.text === text)) {
-        showToast("Already saved ⭐");
-        return;
-    }
-
-    savedPosts.push({
-        text,
-        image: img ? img.src : null
-    });
-
-    localStorage.setItem("savedPosts", JSON.stringify(savedPosts));
-    showToast("Post saved ⭐");
+  // Reload posts after deletion
+  loadPosts();
 }
 
 /* ================= NAVIGATION ================= */
-function goToSaved() {
-    window.location.href = "saved.html";
+function goToProfile() {
+  localStorage.setItem("viewProfile", localStorage.getItem("user"));
+  window.location.href = "profile.html";
 }
 
-function goToProfile() {
-    window.location.href = "profile.html";
+function goToSaved() {
+  window.location.href = "saved.html";
 }
 
 function logout() {
-    localStorage.removeItem("user");
-    window.location.href = "login.html";
+  localStorage.removeItem("user");
+  window.location.href = "login.html";
 }
+function goToSearch() {
+  window.location.href = "search.html";
+}
+function loadSuggestions() {
+  const container = document.getElementById("suggestions");
+  if (!container) return;
 
-/* ================= TOAST ================= */
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.style.display = "block";
-    setTimeout(() => (toast.style.display = "none"), 2000);
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const current = localStorage.getItem("user");
+
+  container.innerHTML = "";
+
+  users
+    .filter(u => u.username !== current)
+    .slice(0, 6)
+    .forEach(user => {
+      const card = document.createElement("div");
+      card.className = "suggestion-card";
+      card.textContent = user.username;
+
+      card.onclick = () => {
+        localStorage.setItem("viewProfile", user.username);
+        window.location.href = "profile.html";
+      };
+
+      container.appendChild(card);
+    });
 }
+document.addEventListener("DOMContentLoaded", function () {
+
+    const imageInput = document.getElementById("imageInput");
+
+    if (imageInput) {   // 🔥 THIS FIX
+        const imagePreview = document.getElementById("imagePreview");
+        const previewContainer = document.getElementById("imagePreviewContainer");
+
+        imageInput.addEventListener("change", function () {
+            const file = this.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    imagePreview.src = event.target.result;
+                    previewContainer.style.display = "block";
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+});
+
